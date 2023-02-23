@@ -11,12 +11,14 @@
                 </div>
 <%--                <div class="col-lg-1" />--%>
                 <div class="col-md-9">
-                    <div id="Progress_Status">
-                        <div id="myprogressBar"></div>
+                    <div class="col-md-10">
+                        <div id="Progress_Status">
+                            <div id="myprogressBar"></div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <form:form modelAttribute="item" role="form" onsubmit="runExportDatabaseProgress()">
+            <form:form modelAttribute="item" role="form" onsubmit="runExportPatientsProgress()">
                 <table class="table">
                     <tbody>
                         <tr>

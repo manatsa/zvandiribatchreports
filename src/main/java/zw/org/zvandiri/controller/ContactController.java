@@ -1,5 +1,6 @@
 package zw.org.zvandiri.controller;
 
+import org.apache.commons.math3.analysis.function.Exp;
 import org.springframework.batch.core.*;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
@@ -14,6 +15,7 @@ import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.Order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import zw.org.zvandiri.BaseController;
 import zw.org.zvandiri.Constants;
 import zw.org.zvandiri.batch.listeners.ContactChunckListener;
+import zw.org.zvandiri.batch.listeners.ExportContactJobListener;
 import zw.org.zvandiri.batch.listeners.PatientChunckListener;
 import zw.org.zvandiri.batch.streams.PatientItemCountItemStream;
 import zw.org.zvandiri.batch.writers.ContactExcelWriter;
@@ -35,6 +38,8 @@ import zw.org.zvandiri.business.domain.util.PatientChangeEvent;
 import zw.org.zvandiri.business.domain.util.UserLevel;
 import zw.org.zvandiri.business.service.*;
 import zw.org.zvandiri.business.util.dto.SearchDTO;
+import zw.org.zvandiri.controller.progress.variables.ExportContactsVariables;
+import zw.org.zvandiri.controller.progress.variables.ExportDatabaseVariables;
 
 import javax.persistence.EntityManagerFactory;
 import javax.servlet.http.HttpServletResponse;
@@ -79,6 +84,13 @@ public class ContactController extends BaseController {
     JobBuilderFactory jobBuilderFactory;
     @Autowired
     StepBuilderFactory stepBuilderFactory;
+    @Autowired
+    PatientReportService patientReportService;
+    @Autowired
+    ContactService contactService;
+
+    @Autowired
+    ExportContactsVariables exportContactsVariables;
 
 
 
@@ -105,6 +117,11 @@ public class ContactController extends BaseController {
             sb.append((tracer>0)?" and p.primaryClinic.district.province in :provinces":" p.primaryClinic.district.province in :provinces");
             tracer++;
         }
+        if(!params.isEmpty() && params.containsKey("startDate") && params.containsKey("endDate")){
+            sb.append((tracer>0)?" and c.contactDate between :startDate and :endDate":" c.contactDate between :startDate and :endDate");
+            tracer++;
+        }
+
         if(!params.isEmpty() && params.containsKey("statuses")){
             sb.append((tracer>0)?" and p.status in :statuses":" p.status in :statuses");
             tracer++;
@@ -120,23 +137,18 @@ public class ContactController extends BaseController {
     }
 
     public ItemProcessor<Contact,Contact> contactItemProcessor(){
-        ItemProcessor<Contact, Contact> itemProcessor=new ItemProcessor<>() {
-            @Override
-            public Contact process(Contact contact) throws Exception {
-
-                return contact;
-            }
-        };
+        ItemProcessor<Contact, Contact> itemProcessor= (ItemProcessor) contact -> contact;
         return itemProcessor;
     }
 
     public Step exportContactsStep(HttpServletResponse response, Map<String, Object> params, User user){
         ContactChunckListener contactChunckListener=new ContactChunckListener();
         contactChunckListener.setUser(user);
+        contactChunckListener.setExportContactsVariables(exportContactsVariables);
         return stepBuilderFactory.get("**EXPORT_CONTACTS_STEP**")
-                .<Contact, Contact>chunk(Constants.CHUNK_SIZE)
+                .<Contact, Contact>chunk(Constants.CONTACT_PAGE_SIZE)
                 .reader(contactReader(params))
-                .processor(contactItemProcessor())
+                //.processor(contactItemProcessor())
                 .writer(new ContactExcelWriter(response))
                 .faultTolerant()
                 .skipLimit(3)
@@ -157,6 +169,7 @@ public class ContactController extends BaseController {
 
 
     @GetMapping( value={"/index","/index.htm"})
+    @PreAuthorize("hasRole('ROLE_ADMINISTRATOR') or hasRole('ROLE_DATA_CLERK') or hasRole('ROLE_ZM') or hasRole('ROLE_ZI') or hasRole('ROLE_M_AND_E_OFFICER') or hasRole('ROLE_HOD_M_AND_E')")
     public String getPatients(Model model, HttpServletResponse response) throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException, IOException {
         model.addAttribute("pageTitle", APP_PREFIX + "Contact Detailed Report");
         model.addAttribute("provinces", provinceService.getAll());
@@ -166,7 +179,7 @@ public class ContactController extends BaseController {
         UserLevel userLevel=userService.getCurrentUser().getUserLevel();
         model.addAttribute("userLevel",userLevel.getName().toUpperCase());
         model.addAttribute("statuses", PatientChangeEvent.values());
-        return "hierarchicalDatabaseExport";
+        return "contactsExportDates";
     }
 
     @RequestMapping(value = {"/index","index.htm"}, method = RequestMethod.POST)
@@ -191,14 +204,27 @@ public class ContactController extends BaseController {
         if(dto.getProvinces()!=null && !dto.getProvinces().isEmpty()){
             params.put("provinces", dto.getProvinces());
         }
-        List<PatientChangeEvent> statuses=Arrays.asList(PatientChangeEvent.DECEASED, PatientChangeEvent.GRADUATED).stream().collect(Collectors.toList());
-        dto.setStatuses(statuses);
+        if(dto.getStartDate()!=null){
+            params.put("startDate", dto.getStartDate());
+        }
+        if(dto.getEndDate()!=null){
+            params.put("endDate", dto.getEndDate());
+        }
+        long contactCount=contactService.getSelectedContacts(dto);
+        System.err.println("__________________ extracting :: "+contactCount+" contacts as requested ______________");
+        exportContactsVariables.setCount(Double.valueOf(contactCount).doubleValue());
+        //System.err.println("Total Contacts::"+contactCount);
+        exportContactsVariables.setProgress(0);
+
         JobParameters jobParameters = new JobParametersBuilder().addLong("time", System.currentTimeMillis()).toJobParameters();
         JobExecution jobExecution = contactobLauncher.run(exportContactsJob(response, params, currentUser), jobParameters);
         BatchStatus batchStatus = jobExecution.getStatus();
         long time=System.currentTimeMillis()-start;
-        System.err.println("EXPORT CONTACTS JOB STATUS :: "+batchStatus+".USER:: "+currentUser.getUserName()+". IT TOOK :: "+
-                ((time<120)?((time/1000)+" SECONDS."):((time/60000)+" MINUTES.")));
+        System.err.println("EXPORT PATIENTS JOB STATUS :: "+batchStatus+".USER:: "+currentUser.getUserName()+". IT TOOK :: "+
+                ((time<120)?((time/1000)+" SECONDS."):((time/60000)+" MINUTES."+
+                        " PARAMETERS ::"+((dto.getFacilities()!=null && !dto.getFacilities().isEmpty())?" Facilities:["+dto.getFacilities()+"]":
+                        dto.getDistricts()!=null && !dto.getDistricts().isEmpty()?" Districts["+dto.getDistricts()+"]":
+                                dto.getProvinces()!=null && !dto.getProvinces().isEmpty()?" Provinces["+dto.getProvinces()+"]":" National Database"))));
 
     }
 }

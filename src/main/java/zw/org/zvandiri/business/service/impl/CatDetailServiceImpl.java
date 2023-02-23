@@ -15,14 +15,6 @@
  */
 package zw.org.zvandiri.business.service.impl;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import javax.annotation.Resource;
-
-import org.apache.log4j.Logger;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +30,12 @@ import zw.org.zvandiri.business.service.UserService;
 import zw.org.zvandiri.business.util.UUIDGen;
 import zw.org.zvandiri.business.util.dto.NameIdDTO;
 
+import javax.annotation.Resource;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 /**
  *
  * @author Judge Muzinda
@@ -46,7 +44,6 @@ import zw.org.zvandiri.business.util.dto.NameIdDTO;
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class CatDetailServiceImpl implements CatDetailService {
 
-	private static final Logger LOGGER = Logger.getLogger(CatDetailServiceImpl.class);
 	@Resource
 	private CatDetailRepo catDetailRepo;
 	@Resource

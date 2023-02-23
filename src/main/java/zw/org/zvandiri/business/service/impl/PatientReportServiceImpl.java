@@ -72,119 +72,61 @@ public class PatientReportServiceImpl implements PatientReportService {
         StringBuilder builder = new StringBuilder("Select count(p) from Patient p");
         int position = 0;
         builder.append(" where ");
-        if (dto.getProvince() != null) {
+
+        if (dto.getProvinces() != null && !dto.getProvinces().isEmpty()) {
             if (position == 0) {
-                builder.append("p.primaryClinic.district.province=:province");
+                builder.append("p.primaryClinic.district.province in :provinces");
                 position++;
             } else {
-                builder.append(" and p.primaryClinic.district.province=:province");
+                builder.append(" and p.primaryClinic.district.province in :provinces");
             }
         }
-        if (dto.getDistrict() != null) {
+        if (dto.getDistricts() != null && !dto.getDistricts().isEmpty()) {
             if (position == 0) {
-                builder.append("p.primaryClinic.district=:district");
+                builder.append("p.primaryClinic.district in :districts");
                 position++;
             } else {
-                builder.append(" and p.primaryClinic.district=:district");
+                builder.append(" and p.primaryClinic.district in :districts");
             }
 
         }
-        if (dto.getPrimaryClinic() != null) {
+        if (dto.getFacilities() != null && !dto.getFacilities().isEmpty()) {
             if (position == 0) {
-                builder.append("p.primaryClinic=:primaryClinic");
+                builder.append("p.primaryClinic in :facilities");
                 position++;
             } else {
-                builder.append(" and p.primaryClinic=:primaryClinic");
+                builder.append(" and p.primaryClinic in :facilities");
             }
         }
-        if (dto.getSupportGroup() != null) {
+        if (dto.getStatuses() != null && !dto.getStatuses().isEmpty()) {
             if (position == 0) {
-                builder.append("p.supportGroup=:supportGroup");
+                builder.append("p.status in :statuses");
                 position++;
             } else {
-                builder.append(" and p.supportGroup=:supportGroup");
+                builder.append(" and p.status in :statuses");
             }
-        }
-        if (dto.getGender() != null) {
+        }else{
             if (position == 0) {
-                builder.append("p.gender=:gender");
+                builder.append("p.status =5");
                 position++;
             } else {
-                builder.append(" and p.gender=:gender");
+                builder.append(" and p.status = 5");
             }
         }
-        if (dto.getAgeGroup() != null) {
-            if (position == 0) {
-                builder.append("p.dateOfBirth between :start and :end");
-                position++;
-            } else {
-                builder.append(" and p.dateOfBirth between :start and :end");
-            }
-        }
-        if (dto.getPeriod() != null) {
-            if (position == 0) {
-                builder.append("p.period=:period");
-                position++;
-            } else {
-                builder.append(" and p.period=:period");
-            }
-        }
-        if (dto.getStatus() != null) {
-            if (position == 0) {
-                builder.append("p.status=:status");
-                position++;
-            } else {
-                builder.append(" and p.status=:status");
-            }
-        }
-        if (dto.getHei() != null) {
-            if (position == 0) {
-                builder.append("p.hei=:hei");
-                position++;
-            } else {
-                builder.append(" and p.hei=:hei");
-            }
-        }
-        if (dto.getStartDate() != null && dto.getEndDate() != null) {
-            if (position == 0) {
-                builder.append("p.dateJoined between :startDate and :endDate");
-                position++;
-            } else {
-                builder.append(" and (p.dateJoined between :startDate and :endDate)");
-            }
-        }
+
+
         TypedQuery<Long> query = entityManager.createQuery(builder.toString(), Long.class);
-        if (dto.getProvince() != null) {
-            query.setParameter("province", dto.getProvince());
+        if (dto.getProvinces() != null && !dto.getProvinces().isEmpty()) {
+            query.setParameter("provinces", dto.getProvinces());
         }
-        if (dto.getDistrict() != null) {
-            query.setParameter("district", dto.getDistrict());
+        if (dto.getDistricts() != null && !dto.getDistricts().isEmpty()) {
+            query.setParameter("districts", dto.getDistricts());
         }
-        if (dto.getPrimaryClinic() != null) {
-            query.setParameter("primaryClinic", dto.getPrimaryClinic());
+        if (dto.getFacilities() != null && !dto.getFacilities().isEmpty()) {
+            query.setParameter("facilities", dto.getFacilities());
         }
-        if (dto.getSupportGroup() != null) {
-            query.setParameter("supportGroup", dto.getSupportGroup());
-        }
-        if (dto.getGender() != null) {
-            query.setParameter("gender", dto.getGender());
-        }
-        if (dto.getAgeGroup() != null) {
-            query.setParameter("start", DateUtil.getDateFromAge(dto.getAgeGroup().getEnd()));
-            query.setParameter("end", DateUtil.getEndDate(dto.getAgeGroup().getStart()));
-        }
-        if (dto.getPeriod() != null) {
-            query.setParameter("period", dto.getPeriod());
-        }
-        if (dto.getStatus() != null) {
-            query.setParameter("status", dto.getStatus());
-        }
-        if (dto.getHei() != null) {
-            query.setParameter("hei", dto.getHei());
-        }
-        if (dto.getStartDate() != null && dto.getEndDate() != null) {
-            query.setParameter("startDate", dto.getStartDate());
-            query.setParameter("endDate", dto.getEndDate());
+        if (dto.getStatuses() != null && !dto.getStatuses().isEmpty()) {
+            query.setParameter("statuses", dto.getStatuses());
         }
         return (Long) query.getSingleResult();
     }

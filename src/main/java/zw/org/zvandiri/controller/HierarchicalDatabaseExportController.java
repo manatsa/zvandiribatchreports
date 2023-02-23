@@ -33,6 +33,7 @@ import zw.org.zvandiri.business.domain.util.TestType;
 import zw.org.zvandiri.business.service.*;
 import zw.org.zvandiri.business.util.DateUtil;
 import zw.org.zvandiri.business.util.dto.SearchDTO;
+import zw.org.zvandiri.controller.progress.variables.ExportDatabaseVariables;
 
 import javax.annotation.Resource;
 import javax.persistence.EntityManagerFactory;
@@ -59,6 +60,8 @@ public class HierarchicalDatabaseExportController extends BaseController {
     ProvinceService provinceService;
     @Resource
     FacilityService facilityService;
+    @Autowired
+    PatientReportService patientReportService;
     @Resource
     UserService userService;
     @Autowired
@@ -73,14 +76,12 @@ public class HierarchicalDatabaseExportController extends BaseController {
     TbIptService tbIptService;
     @Autowired
     MentalHealthScreeningService mentalHealthScreeningService;
-
-
     @Autowired
     JobLauncher exportDatabaseJobLauncher;
-
-
     @Autowired
     EntityManagerFactory entityManagerFactory;
+    @Autowired
+    ExportDatabaseVariables exportDatabaseVariables;
 
 
     public ItemStream stream(){
@@ -126,19 +127,7 @@ public class HierarchicalDatabaseExportController extends BaseController {
 
     public ItemProcessor<Patient, Patient> patientItemProcessor(){
         ExportDatabaseDTO exportDatabaseDTO= new ExportDatabaseDTO();
-        ItemProcessor<Patient,Patient> itemProcessor=new ItemProcessor<>() {
-            @Override
-            public Patient process(Patient patient) throws Exception {
-                /*return new ExportDatabaseDTO(new ArrayList<>(Arrays.asList(new Patient[]{patient})),
-                        patient.getContacts().stream().toList(),
-                        patient.getReferrals().stream().toList(),
-                        patient.getInvestigationTests().stream().toList(),
-                        patient.getTbIpts().stream().toList(),
-                        patient.getMentalHealthScreenings().stream().toList()
-                );*/
-                return patient;
-            }
-        };
+        ItemProcessor<Patient,Patient> itemProcessor= (ItemProcessor) patient -> patient;
         return itemProcessor;
     }
 
@@ -149,6 +138,7 @@ public class HierarchicalDatabaseExportController extends BaseController {
         executor.setThreadNamePrefix("PATIENT_THR_");
         ExportDatabaseChunckListener exportDatabaseChunckListener= new ExportDatabaseChunckListener();
         exportDatabaseChunckListener.setUser(user);
+        exportDatabaseChunckListener.setExportDatabaseVariables(exportDatabaseVariables);
         return stepBuilderFactory.get("**EXPORT_DB_STEP**")
                 .<Patient, Patient>chunk(Constants.EXPORT_DATABASE_PAGE_SIZE)
                 .reader(patientsReader(params))
@@ -165,9 +155,6 @@ public class HierarchicalDatabaseExportController extends BaseController {
                 .build();
 
     }
-
-
-
 
     public Job exportPatientsJob(HttpServletResponse response, Map<String, Object> params, User user){
         return jobBuilderFactory.get("EXPORT_DATABASE_JOB")
@@ -221,14 +208,20 @@ public class HierarchicalDatabaseExportController extends BaseController {
             if(dto.getProvinces()!=null && !dto.getProvinces().isEmpty()){
                 params.put("provinces", dto.getProvinces());
             }
+            long count=patientReportService.getCount(dto);
+            exportDatabaseVariables.setCount(Double.valueOf(count).doubleValue());
+            exportDatabaseVariables.setProgress(0);
             List<PatientChangeEvent> statuses= Arrays.asList(PatientChangeEvent.DECEASED, PatientChangeEvent.GRADUATED).stream().collect(Collectors.toList());
             dto.setStatuses(statuses);
             JobParameters jobParameters = new JobParametersBuilder().addLong("time", System.currentTimeMillis()).toJobParameters();
             JobExecution jobExecution = exportDatabaseJobLauncher.run(exportPatientsJob(response, params, currentUser), jobParameters);
             BatchStatus batchStatus = jobExecution.getStatus();
             long time=System.currentTimeMillis()-startTime;
-            System.err.println("EXPORT PATIENTS JOB STATUS :: "+batchStatus+". USER::"+currentUser.getUserName()+". IT TOOK :: "+
-                    ((time<120)?((time/1000)+" SECONDS."):((time/60000)+" MINUTES.")));
+            System.err.println("EXPORT PATIENTS JOB STATUS :: "+batchStatus+".USER:: "+currentUser.getUserName()+". IT TOOK :: "+
+                    ((time<120)?((time/1000)+" SECONDS."):((time/60000)+" MINUTES."+
+                            " PARAMETERS ::"+((dto.getFacilities()!=null && !dto.getFacilities().isEmpty())?" Facilities:["+dto.getFacilities()+"]":
+                            dto.getDistricts()!=null && !dto.getDistricts().isEmpty()?" Districts["+dto.getDistricts()+"]":
+                                    dto.getProvinces()!=null && !dto.getProvinces().isEmpty()?" Provinces["+dto.getProvinces()+"]":" National Database"))));
 
         }catch (Exception e){
             e.printStackTrace();

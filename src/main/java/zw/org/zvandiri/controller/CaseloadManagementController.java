@@ -1,10 +1,8 @@
 package zw.org.zvandiri.controller;
 
-import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.joda.time.LocalDate;
 import org.springframework.batch.core.*;
-import org.springframework.batch.core.annotation.AfterJob;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -16,7 +14,7 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.Order;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,24 +25,20 @@ import zw.org.zvandiri.BaseController;
 import zw.org.zvandiri.Constants;
 import zw.org.zvandiri.batch.listeners.CaseloadJobExcutionListener;
 import zw.org.zvandiri.batch.listeners.CaseloadManagementChunckListener;
-import zw.org.zvandiri.batch.listeners.ContactChunckListener;
-import zw.org.zvandiri.batch.writers.ContactExcelWriter;
-import zw.org.zvandiri.batch.writers.UncontactedExcelWriter;
+import zw.org.zvandiri.batch.writers.CaseloadManagementExcelWriter;
 import zw.org.zvandiri.business.domain.Cadre;
-import zw.org.zvandiri.business.domain.Contact;
 import zw.org.zvandiri.business.domain.Patient;
 import zw.org.zvandiri.business.domain.User;
 import zw.org.zvandiri.business.domain.util.PatientChangeEvent;
 import zw.org.zvandiri.business.domain.util.UserLevel;
 import zw.org.zvandiri.business.service.*;
 import zw.org.zvandiri.business.util.dto.SearchDTO;
+import zw.org.zvandiri.controller.progress.variables.ExportCaseloadVariables;
+import zw.org.zvandiri.controller.progress.variables.ExportDatabaseVariables;
 
 import javax.persistence.EntityManagerFactory;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -57,7 +51,6 @@ import java.util.stream.Collectors;
 @Controller
 @RequestMapping("/report/case-load-management")
 public class CaseloadManagementController extends BaseController {
-
     @Autowired
     EntityManagerFactory entityManagerFactory;
 
@@ -81,6 +74,8 @@ public class CaseloadManagementController extends BaseController {
     JobBuilderFactory jobBuilderFactory;
     @Autowired
     StepBuilderFactory stepBuilderFactory;
+    @Autowired
+    ExportCaseloadVariables exportCaseloadVariables;
 
     SXSSFWorkbook workbook;
 
@@ -238,7 +233,6 @@ public class CaseloadManagementController extends BaseController {
         return itemReader;
     }
 
-
     public JpaPagingItemReader<Patient> tbCandidatesReader(Map<String,Object> params){
         JpaPagingItemReader<Patient> itemReader= new JpaPagingItemReader<>();
         itemReader.setEntityManagerFactory(entityManagerFactory);
@@ -333,14 +327,15 @@ public class CaseloadManagementController extends BaseController {
     }
 
     public Step exportUncontactedStep(HttpServletResponse response, Map<String, Object> params,User user){
-        UncontactedExcelWriter uncontactedExcelWriter=new UncontactedExcelWriter(response);
-        uncontactedExcelWriter.setSheet(workbook.createSheet("uncontacted"));
+        CaseloadManagementExcelWriter caseloadManagementExcelWriter =new CaseloadManagementExcelWriter(response);
+        caseloadManagementExcelWriter.setSheet(workbook.createSheet("uncontacted"));
+        caseloadManagementExcelWriter.setExportCaseloadVariables(exportCaseloadVariables);
         CaseloadManagementChunckListener caseloadManagementChunckListener= new CaseloadManagementChunckListener();
         caseloadManagementChunckListener.setUser(user);
         return stepBuilderFactory.get("**EXPORT_UNCONTACTED_STEP**")
                 .<Patient, Patient>chunk(Constants.CHUNK_SIZE)
                 .reader(uncontactReader(params))
-                .writer(uncontactedExcelWriter)
+                .writer(caseloadManagementExcelWriter)
                 .faultTolerant()
                 .skipLimit(3)
                 .skip(NullPointerException.class)
@@ -352,14 +347,15 @@ public class CaseloadManagementController extends BaseController {
     }
 
     public Step exportInvalidVlStep(HttpServletResponse response, Map<String, Object> params, User user){
-        UncontactedExcelWriter uncontactedExcelWriter=new UncontactedExcelWriter(response);
-        uncontactedExcelWriter.setSheet(workbook.createSheet("invalidVLs"));
+        CaseloadManagementExcelWriter caseloadManagementExcelWriter =new CaseloadManagementExcelWriter(response);
+        caseloadManagementExcelWriter.setSheet(workbook.createSheet("invalidVLs"));
+        caseloadManagementExcelWriter.setExportCaseloadVariables(exportCaseloadVariables);
         CaseloadManagementChunckListener caseloadManagementChunckListener= new CaseloadManagementChunckListener();
         caseloadManagementChunckListener.setUser(user);
         return stepBuilderFactory.get("**EXPORT_INVALID_VL_STEP**")
                 .<Patient, Patient>chunk(Constants.CHUNK_SIZE)
                 .reader(invalidVlsReader(params))
-                .writer(uncontactedExcelWriter)
+                .writer(caseloadManagementExcelWriter)
                 .faultTolerant()
                 .skipLimit(3)
                 .skip(NullPointerException.class)
@@ -371,14 +367,15 @@ public class CaseloadManagementController extends BaseController {
     }
 
     public Step exportEnhancedStep(HttpServletResponse response, Map<String, Object> params, User user){
-        UncontactedExcelWriter uncontactedExcelWriter=new UncontactedExcelWriter(response);
-        uncontactedExcelWriter.setSheet(workbook.createSheet("enhanced"));
+        CaseloadManagementExcelWriter caseloadManagementExcelWriter =new CaseloadManagementExcelWriter(response);
+        caseloadManagementExcelWriter.setSheet(workbook.createSheet("enhanced"));
+        caseloadManagementExcelWriter.setExportCaseloadVariables(exportCaseloadVariables);
         CaseloadManagementChunckListener caseloadManagementChunckListener= new CaseloadManagementChunckListener();
         caseloadManagementChunckListener.setUser(user);
         return stepBuilderFactory.get("**EXPORT_ENHANCED_STEP**")
                 .<Patient, Patient>chunk(Constants.CHUNK_SIZE)
                 .reader(enhancedReader(params))
-                .writer(uncontactedExcelWriter)
+                .writer(caseloadManagementExcelWriter)
                 .faultTolerant()
                 .skipLimit(3)
                 .skip(NullPointerException.class)
@@ -390,14 +387,15 @@ public class CaseloadManagementController extends BaseController {
     }
 
     public Step exportTBScreeningStep(HttpServletResponse response, Map<String, Object> params, User user){
-        UncontactedExcelWriter uncontactedExcelWriter=new UncontactedExcelWriter(response);
-        uncontactedExcelWriter.setSheet(workbook.createSheet("tb_candidates"));
+        CaseloadManagementExcelWriter caseloadManagementExcelWriter =new CaseloadManagementExcelWriter(response);
+        caseloadManagementExcelWriter.setSheet(workbook.createSheet("tb_candidates"));
+        caseloadManagementExcelWriter.setExportCaseloadVariables(exportCaseloadVariables);
         CaseloadManagementChunckListener caseloadManagementChunckListener= new CaseloadManagementChunckListener();
         caseloadManagementChunckListener.setUser(user);
         return stepBuilderFactory.get("**EXPORT_TB_CANDIDATES_STEP**")
                 .<Patient, Patient>chunk(Constants.CHUNK_SIZE)
                 .reader(tbCandidatesReader(params))
-                .writer(uncontactedExcelWriter)
+                .writer(caseloadManagementExcelWriter)
                 .faultTolerant()
                 .skipLimit(3)
                 .skip(NullPointerException.class)
@@ -411,15 +409,16 @@ public class CaseloadManagementController extends BaseController {
     }
 
     public Step exportMHScreeningStep(HttpServletResponse response, Map<String, Object> params, User user){
-        UncontactedExcelWriter uncontactedExcelWriter=new UncontactedExcelWriter(response);
-        uncontactedExcelWriter.setSheet(workbook.createSheet("mh_candidates"));
+        CaseloadManagementExcelWriter caseloadManagementExcelWriter =new CaseloadManagementExcelWriter(response);
+        caseloadManagementExcelWriter.setSheet(workbook.createSheet("mh_candidates"));
+        caseloadManagementExcelWriter.setExportCaseloadVariables(exportCaseloadVariables);
         CaseloadManagementChunckListener caseloadManagementChunckListener= new CaseloadManagementChunckListener();
         caseloadManagementChunckListener.setUser(user);
 
         return stepBuilderFactory.get("**EXPORT_MH_CANDIDATES_STEP**")
                 .<Patient, Patient>chunk(Constants.CHUNK_SIZE)
                 .reader(mhCandidatesReader(params))
-                .writer(uncontactedExcelWriter)
+                .writer(caseloadManagementExcelWriter)
                 .faultTolerant()
                 .skipLimit(3)
                 .skip(NullPointerException.class)
@@ -447,6 +446,7 @@ public class CaseloadManagementController extends BaseController {
 
 
     @GetMapping( value={"/index","/index.htm"})
+    @PreAuthorize("hasRole('ROLE_ADMINISTRATOR') or hasRole('ROLE_DATA_CLERK') or hasRole('ROLE_ZM') or hasRole('ROLE_ZI') or hasRole('ROLE_M_AND_E_OFFICER') or hasRole('ROLE_HOD_M_AND_E')")
     public String getPatients(Model model, HttpServletResponse response) throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException, IOException {
         model.addAttribute("pageTitle", APP_PREFIX + "Caseload Management Plan Report");
         model.addAttribute("provinces", provinceService.getAll());
@@ -460,6 +460,7 @@ public class CaseloadManagementController extends BaseController {
     }
 
     @RequestMapping(value = {"/index","index.htm"}, method = RequestMethod.POST)
+    @PreAuthorize("hasRole('ROLE_ADMINISTRATOR') or hasRole('ROLE_DATA_CLERK') or hasRole('ROLE_ZM') or hasRole('ROLE_ZI') or hasRole('ROLE_M_AND_E_OFFICER') or hasRole('ROLE_HOD_M_AND_E')")
     public void startJob(HttpServletResponse response, @ModelAttribute("item") SearchDTO dto) throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException, IOException {
         long start=System.currentTimeMillis();
         User user=userService.getCurrentUser();
@@ -487,14 +488,18 @@ public class CaseloadManagementController extends BaseController {
             params.put("startDate", dto.getStartDate());
             params.put("endDate", dto.getEndDate());
         }
+        exportCaseloadVariables.setCount(5);
+        exportCaseloadVariables.setProgress(0);
         List<PatientChangeEvent> statuses=Arrays.asList(PatientChangeEvent.DECEASED, PatientChangeEvent.GRADUATED).stream().collect(Collectors.toList());
         dto.setStatuses(statuses);
         JobParameters jobParameters = new JobParametersBuilder().addLong("time", System.currentTimeMillis()).toJobParameters();
         JobExecution jobExecution = contactobLauncher.run(exportContactsJob(response, params,user), jobParameters);
-        BatchStatus batchStatus = jobExecution.getStatus();
         long time=System.currentTimeMillis()-start;
-        System.err.println("EXPORT CONTACTS JOB STATUS :: "+batchStatus+". USER:: "+user.getUserName()+". IT TOOK :: "+
-                ((time<120)?((time/1000)+" SECONDS."):((time/60000)+" MINUTES.")));
+        System.err.println("EXPORT PATIENTS JOB STATUS :: "+jobExecution.getStatus()+".USER:: "+user.getUserName()+". IT TOOK :: "+
+                ((time<120)?((time/1000)+" SECONDS."):((time/60000)+" MINUTES."+
+                        " PARAMETERS ::"+((dto.getFacilities()!=null && !dto.getFacilities().isEmpty())?" Facilities:["+dto.getFacilities()+"]":
+                        dto.getDistricts()!=null && !dto.getDistricts().isEmpty()?" Districts["+dto.getDistricts()+"]":
+                                dto.getProvinces()!=null && !dto.getProvinces().isEmpty()?" Provinces["+dto.getProvinces()+"]":" National Database"))));
 
     }
 

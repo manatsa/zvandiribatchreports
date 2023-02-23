@@ -15,11 +15,7 @@
  */
 package zw.org.zvandiri.business.service.impl;
 
-import java.util.Date;
-import java.util.List;
-import javax.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,12 +23,19 @@ import zw.org.zvandiri.business.domain.Contact;
 import zw.org.zvandiri.business.domain.InvestigationTest;
 import zw.org.zvandiri.business.domain.Patient;
 import zw.org.zvandiri.business.domain.User;
+import zw.org.zvandiri.business.domain.util.PatientChangeEvent;
 import zw.org.zvandiri.business.domain.util.TestType;
 import zw.org.zvandiri.business.repo.ContactRepo;
 import zw.org.zvandiri.business.service.ContactService;
 import zw.org.zvandiri.business.service.InvestigationTestService;
 import zw.org.zvandiri.business.service.UserService;
 import zw.org.zvandiri.business.util.UUIDGen;
+import zw.org.zvandiri.business.util.dto.SearchDTO;
+
+import javax.annotation.Resource;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 /**
  *
@@ -48,7 +51,6 @@ public class ContactServiceImpl implements ContactService {
 	private UserService userService;
 	@Resource
 	private InvestigationTestService investigationTestService;
-	private final Logger LOG = Logger.getLogger(ContactServiceImpl.class);
 
 	@Override
 	public List<Contact> getAll() {
@@ -104,7 +106,6 @@ public class ContactServiceImpl implements ContactService {
 
 	@Override
 	public List<Contact> getByPatient(Patient patient) {
-		// patient.getContacts();
 		return contactRepo.findByPatient(patient);
 	}
 
@@ -120,6 +121,7 @@ public class ContactServiceImpl implements ContactService {
 		// Boolean.FALSE);
 		return null;
 	}
+
 
 	@Override
 	public Contact findLatestContact(Patient patient) {
@@ -163,6 +165,40 @@ public class ContactServiceImpl implements ContactService {
 	@Override
 	public List<Contact> findByFacilityInGivenTime(Date start, Date end, String facility) {
 		return contactRepo.findByFacilityInGivenTime(start,end,facility);
+	}
+
+	@Override
+	public long getSelectedContacts(SearchDTO dto) {
+		long count=0;
+		if(dto.getFacilities()!=null && !dto.getFacilities().isEmpty()){
+			if(dto.getStartDate()!=null && dto.getEndDate()!=null){
+				count=contactRepo.countContactsByFacilitiesDates(dto.getFacilities(),(dto.getStatuses()!=null && !dto.getStatuses().isEmpty())?dto.getStatuses(): Arrays.asList(PatientChangeEvent.ACTIVE),dto.getStartDate(), dto.getEndDate());
+			}else{
+				count=contactRepo.countContactsByFacilities(dto.getFacilities(),(dto.getStatuses()!=null && !dto.getStatuses().isEmpty())?dto.getStatuses(): Arrays.asList(PatientChangeEvent.ACTIVE));
+			}
+
+		}
+		else if (dto.getDistricts()!=null && !dto.getDistricts().isEmpty()) {
+			if(dto.getStartDate()!=null && dto.getEndDate()!=null){
+				count=contactRepo.countContactsByDistrictsDates(dto.getDistricts(), (dto.getStatuses()!=null && !dto.getStatuses().isEmpty())?dto.getStatuses():Arrays.asList(PatientChangeEvent.ACTIVE), dto.getStartDate(), dto.getEndDate());
+			}else{
+				count=contactRepo.countContactsByDistricts(dto.getDistricts(), (dto.getStatuses()!=null && !dto.getStatuses().isEmpty())?dto.getStatuses():Arrays.asList(PatientChangeEvent.ACTIVE));
+			}
+		}
+		else if (dto.getProvinces()!=null && !dto.getProvinces().isEmpty()) {
+			if(dto.getStartDate()!=null && dto.getEndDate()!=null){
+				count=contactRepo.countContactsByProvincesDates(dto.getProvinces(), (dto.getStatuses()!=null && !dto.getStatuses().isEmpty())?dto.getStatuses():Arrays.asList(PatientChangeEvent.ACTIVE), dto.getStartDate(), dto.getEndDate());
+			}else{
+				count=contactRepo.countContactsByProvinces(dto.getProvinces(), (dto.getStatuses()!=null && !dto.getStatuses().isEmpty())?dto.getStatuses():Arrays.asList(PatientChangeEvent.ACTIVE));
+			}
+		}else{
+			if(dto.getStartDate()!=null && dto.getEndDate()!=null){
+				count=contactRepo.countContactsDates((dto.getStatuses()!=null && !dto.getStatuses().isEmpty())?dto.getStatuses():Arrays.asList(PatientChangeEvent.ACTIVE), dto.getStartDate(), dto.getEndDate());
+			}else{
+				count=contactRepo.countContacts((dto.getStatuses()!=null && !dto.getStatuses().isEmpty())?dto.getStatuses():Arrays.asList(PatientChangeEvent.ACTIVE));
+			}
+		}
+		return count;
 	}
 
 }

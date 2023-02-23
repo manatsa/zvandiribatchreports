@@ -16,22 +16,23 @@
 
 package zw.org.zvandiri.business.repo;
 
-import java.util.List;
-
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import zw.org.zvandiri.business.domain.Province;
 
 /**
  *
  * @author Judge Muzinda
  */
+
+@Repository
 public interface ProvinceRepo extends JpaRepository<Province, String> {
     
-    @Query("from Province p left join fetch p.createdBy left join fetch p.modifiedBy where p.active=:active Order By p.name ASC")
+   /* @Query("from Province p left join fetch p.createdBy left join fetch p.modifiedBy where p.active=:active Order By p.name ASC")
     public List<Province> getOptAll(@Param("active") Boolean active);
     
     @Query("from Province p where p.name=:name")
-    public Province getProvinceByName(@Param("name") String name);   
+    public Province getProvinceByName(@Param("name") String name);   */
+
+    public Province getProvinceByName(String name);
 }

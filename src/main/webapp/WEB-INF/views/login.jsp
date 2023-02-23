@@ -61,7 +61,7 @@
             </div>
             <h2>Login to your account</h2>
             <%@include file="template/message.jspf" %>
-            <form class="form-horizontal" action="<c:url value='j_spring_security_check' />" method="post">
+            <form class="form-horizontal" action="<c:url value='/logins' />" method="post">
                 <fieldset>
                     <div class="input-prepend" title="Username">
                         <span class="add-on"><i class="halflings-icon user"></i></span>

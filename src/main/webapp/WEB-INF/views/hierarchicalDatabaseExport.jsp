@@ -5,8 +5,20 @@
             ${pageTitle}
         </div>
         <div class="panel-body">
-            <a href="${page}/report/index.htm">&DoubleLeftArrow; Back To Reports DashBoard Home</a><br/>
-            <form:form modelAttribute="item" role="form">
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    <a href="${page}/report/index.htm">&DoubleLeftArrow; Reports DashBoard</a><br/>
+                </div>
+<%--                <div class="col-lg-1" />--%>
+                <div class="col-md-9">
+                    <div class="col-md-10">
+                        <div id="Progress_Status">
+                            <div id="myprogressBar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <form:form modelAttribute="item" role="form" onsubmit="runExportDatabaseProgress()">
                 <table class="table">
                     <tbody>
                         <tr>
@@ -28,7 +40,7 @@
                                 <td>
                                     <div class="form-group">
                                         <label for="districts">District</label>
-                                        <form:select path="districts" size="20" class="form-control" id="districts" multiple="multiple">
+                                        <form:select path="districts" size="15" class="form-control" id="districts" multiple="multiple">
                                             <form:option value="" label="--Select Item--"/>
                                             <form:options items="${districts}" itemLabel="name" itemValue="id"/>
                                         </form:select>
@@ -41,7 +53,7 @@
                             <td>
                                 <div class="form-group">
                                     <label for="facilities">Facility</label>
-                                    <form:select path="facilities" size="25" class="form-control" id="facilities" multiple="multiple">
+                                    <form:select path="facilities" size="18" class="form-control" id="facilities" multiple="multiple">
                                         <form:option value="" label="--Select Item--"/>
                                         <form:options items="${facilities}" itemLabel="name" itemValue="id"/>
                                     </form:select>
@@ -65,7 +77,7 @@
                             <td>
                                 <div class="form-group">
                                     <label>&nbsp;</label><br/>
-                                    <button class="btn btn-primary" type="submit" >Export</button>
+                                    <button class="btn btn-primary" type="submit"  >Export</button>
                                 </div> 
                             </td>
                         </tr>

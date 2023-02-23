@@ -15,6 +15,7 @@ import org.springframework.batch.item.database.Order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -26,10 +27,13 @@ import zw.org.zvandiri.batch.writers.PatientExcelWriter;
 import zw.org.zvandiri.business.domain.Cadre;
 import zw.org.zvandiri.business.domain.Patient;
 import zw.org.zvandiri.business.domain.User;
+import zw.org.zvandiri.business.domain.dto.DataDTO;
 import zw.org.zvandiri.business.domain.util.PatientChangeEvent;
 import zw.org.zvandiri.business.domain.util.UserLevel;
 import zw.org.zvandiri.business.service.*;
 import zw.org.zvandiri.business.util.dto.SearchDTO;
+import zw.org.zvandiri.controller.progress.variables.ExportDatabaseVariables;
+import zw.org.zvandiri.controller.progress.variables.ExportPatientsVariables;
 
 import javax.persistence.EntityManagerFactory;
 import javax.servlet.http.HttpServletResponse;
@@ -70,6 +74,10 @@ public class PatientController extends BaseController {
     JobBuilderFactory jobBuilderFactory;
     @Autowired
     StepBuilderFactory stepBuilderFactory;
+    @Autowired
+    PatientReportService patientReportService;
+    @Autowired
+    ExportPatientsVariables exportPatientsVariables;
 
 
 
@@ -116,19 +124,14 @@ public class PatientController extends BaseController {
     }
 
     public ItemProcessor<Patient,Patient> patientItemProcessor(){
-        ItemProcessor<Patient,Patient> itemProcessor=new ItemProcessor<>() {
-            @Override
-            public Patient process(Patient patient) throws Exception {
-
-                return patient;
-            }
-        };
+        ItemProcessor<Patient,Patient> itemProcessor= (ItemProcessor) patient -> patient;
         return itemProcessor;
     }
 
     public Step exportPatientsStep(HttpServletResponse response, Map<String, Object> params,User user){
         PatientChunckListener patientChunckListener=new PatientChunckListener();
         patientChunckListener.setUser(user);
+        patientChunckListener.setExportPatientsVariables(exportPatientsVariables);
         return stepBuilderFactory.get("**EXPORT_PATIENT_STEP**")
                 .<Patient, Patient>chunk(Constants.CHUNK_SIZE)
                 .reader(patientReader(params))
@@ -146,7 +149,6 @@ public class PatientController extends BaseController {
 
 
 
-
     public Job exportPatientsJob(HttpServletResponse response, Map<String, Object> params, User user){
         return jobBuilderFactory.get("EXPORT_PATIENT_JOB")
                 .incrementer(new RunIdIncrementer())
@@ -161,15 +163,16 @@ public class PatientController extends BaseController {
         model.addAttribute("provinces", provinceService.getAll());
         model.addAttribute("districts", districtService.getAll());
         model.addAttribute("facilities", facilityService.getAll());
-        model.addAttribute("item", new SearchDTO());
+        model.addAttribute("item", new DataDTO());
         UserLevel userLevel=userService.getCurrentUser().getUserLevel();
         model.addAttribute("userLevel",userLevel.getName().toUpperCase());
         model.addAttribute("statuses", PatientChangeEvent.values());
-        return "hierarchicalDatabaseExport";
+        return "patientDatabaseExport";
     }
 
     @RequestMapping(value = {"/index","index.htm"}, method = RequestMethod.POST)
-    public void getPatientList(HttpServletResponse response, @ModelAttribute("item") SearchDTO dto) throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException, IOException {
+    @PreAuthorize("hasRole('ROLE_ADMINISTRATOR') or hasRole('ROLE_DATA_CLERK') or hasRole('ROLE_ZM') or hasRole('ROLE_ZI') or hasRole('ROLE_M_AND_E_OFFICER') or hasRole('ROLE_HOD_M_AND_E')")
+    public void getPatientList(HttpServletResponse response, @ModelAttribute("item") DataDTO dto) throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException, IOException {
         long start=System.currentTimeMillis();
         User user=userService.getCurrentUser();
         System.err.println("---- Client Detailed Report ==> Current User: "+userService.getCurrentUsername()+
@@ -190,14 +193,22 @@ public class PatientController extends BaseController {
         if(dto.getProvinces()!=null && !dto.getProvinces().isEmpty()){
             params.put("provinces", dto.getProvinces());
         }
-        List<PatientChangeEvent> statuses=Arrays.asList(PatientChangeEvent.DECEASED, PatientChangeEvent.GRADUATED).stream().collect(Collectors.toList());
-        dto.setStatuses(statuses);
-        JobParameters jobParameters = new JobParametersBuilder().addLong("time", System.currentTimeMillis()).toJobParameters();
+        long count=patientReportService.getCount(dto.toSearchDTO());
+        exportPatientsVariables.setCount(count);
+        exportPatientsVariables.setProgress(0);
+
+        JobParameters jobParameters = new JobParametersBuilder()
+                .addLong("time", System.currentTimeMillis())
+                .addString("DTO", dto.toString())
+                .toJobParameters();
         JobExecution jobExecution = patientJobLauncher.run(exportPatientsJob(response, params, user), jobParameters);
         BatchStatus batchStatus = jobExecution.getStatus();
         long time=System.currentTimeMillis()-start;
         System.err.println("EXPORT PATIENTS JOB STATUS :: "+batchStatus+".USER:: "+user.getUserName()+". IT TOOK :: "+
-                ((time<120)?((time/1000)+" SECONDS."):((time/60000)+" MINUTES.")));
+                ((time<120)?((time/1000)+" SECONDS."):((time/60000)+" MINUTES."+
+                        " PARAMETERS ::"+((dto.getFacilities()!=null && !dto.getFacilities().isEmpty())?" Facilities:["+dto.getFacilities()+"]":
+                        dto.getDistricts()!=null && !dto.getDistricts().isEmpty()?" Districts["+dto.getDistricts()+"]":
+                                dto.getProvinces()!=null && !dto.getProvinces().isEmpty()?" Provinces["+dto.getProvinces()+"]":" National Database"))));
 
     }
 }

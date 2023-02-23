@@ -41,6 +41,7 @@
         </style>
     </head>
     <body>
+
         <c:set var="page" value="${pageContext.request.contextPath}"/>
         <script type="text/javascript">
             var beneficiary = "<c:out value="${yearRanges.beneficiary}"/>";
@@ -72,4 +73,9 @@
                 <%@include file="sidebarnavigation.jspf" %>
             </nav>
             <div id="page-wrapper"><br/>
+                <%--<div id='progressBar' style='height: 20px; border: 2px solid green; margin-bottom: 20px'>
+                    <div id='bar' style='height: 100%; background: #33dd33; width: 10%'>
+                    </div>
+                </div>--%>
+
                 <a title="Toggle side bar" href="#" id="toggle-rem-side-bar"><span class="toggle-span fa fa-long-arrow-left"> &nbsp;</span></a>

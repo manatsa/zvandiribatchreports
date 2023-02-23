@@ -1,14 +1,14 @@
 package zw.org.zvandiri.business.domain;
 
 import lombok.ToString;
-import org.hibernate.validator.constraints.NotBlank;
-import org.joda.time.LocalDate;
 import org.springframework.format.annotation.DateTimeFormat;
 import zw.org.zvandiri.business.domain.util.Condition;
 import zw.org.zvandiri.business.domain.util.PhoneStatus;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Enumerated;
+import javax.persistence.OneToOne;
 import java.util.Date;
 
 @ToString
@@ -19,18 +19,13 @@ import java.util.Date;
         @Index(name = "cadre_msisdn1", columnList = "msisdn1")
 })*/
 public class MobilePhone extends BaseEntity{
-    @NotBlank(message = "At least one phone number is needed")
     private String msisdn1;
     private String msisdn2;
-    @NotBlank(message = "At least one IMEI number is needed")
     private String imei1;
     private String imei2;
-    @NotBlank(message = "Phone make can not be empty!")
     private String phoneMake;
-    @NotBlank(message = "Phone model can not be empty!")
     private String phoneModel;
     private String phoneIssues;
-    @NotBlank(message = "Phone serial number can not be empty!")
     private String serialNumber;
     @Enumerated
     //@NotBlank(message = "Please select condition of the phone")
@@ -39,7 +34,6 @@ public class MobilePhone extends BaseEntity{
     //@NotBlank(message = "Please select status of the phone")
     private PhoneStatus phoneStatus=PhoneStatus.WORKING;
     @DateTimeFormat(pattern = "dd/MM/yyyy")
-    @NotNull(message = "Please enter date then phone was/is issued.")
     private Date dateIssued;
     @DateTimeFormat(pattern = "dd/MM/yyyy")
     private Date dateRecovered;

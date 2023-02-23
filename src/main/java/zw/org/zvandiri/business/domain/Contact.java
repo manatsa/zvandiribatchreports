@@ -15,26 +15,18 @@
  */
 package zw.org.zvandiri.business.domain;
 
-import java.util.*;
-import javax.annotation.Resource;
-import javax.persistence.*;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import zw.org.zvandiri.business.domain.dto.ContactDTO;
-import zw.org.zvandiri.business.domain.util.CareLevel;
-import zw.org.zvandiri.business.domain.util.ContactPhoneOption;
-import zw.org.zvandiri.business.domain.util.FollowUp;
-import zw.org.zvandiri.business.domain.util.UserLevel;
-import zw.org.zvandiri.business.domain.util.YesNo;
-import zw.org.zvandiri.business.repo.PatientRepo;
-import zw.org.zvandiri.business.service.*;
+import zw.org.zvandiri.business.domain.util.*;
+
+import javax.persistence.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  *

@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import zw.org.zvandiri.business.domain.User;
 import zw.org.zvandiri.business.service.UserService;
+import zw.org.zvandiri.controller.progress.variables.ExportDatabaseVariables;
 
 /**
  * Log the count of items processed at a specified interval.
@@ -27,7 +28,10 @@ import zw.org.zvandiri.business.service.UserService;
 @Slf4j
 public class ExportDatabaseChunckListener implements ChunkListener{
 
-    private int loggingInterval = 500;
+    @Autowired
+    ExportDatabaseVariables exportDatabaseVariables;
+
+    private int loggingInterval = 200;
 
     private User User;
 
@@ -44,6 +48,8 @@ public class ExportDatabaseChunckListener implements ChunkListener{
     public void afterChunk(ChunkContext context) {
 
         int count = context.getStepContext().getStepExecution().getReadCount();
+        exportDatabaseVariables.setProgress(Double.valueOf(count).doubleValue());
+        //System.err.println("progress :: "+ExportDatabaseVariables.progress);
 
         // If the number of records processed so far is a multiple of the logging interval then output a log message.
         if (count > 0 && count % loggingInterval == 0) {
@@ -74,5 +80,13 @@ public class ExportDatabaseChunckListener implements ChunkListener{
 
     public void setUser(User user) {
         User = user;
+    }
+
+    public ExportDatabaseVariables getExportDatabaseVariables() {
+        return exportDatabaseVariables;
+    }
+
+    public void setExportDatabaseVariables(ExportDatabaseVariables exportDatabaseVariables) {
+        this.exportDatabaseVariables = exportDatabaseVariables;
     }
 }

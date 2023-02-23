@@ -13,6 +13,24 @@ option:hover {
     color: white;
 }
 
+#Progress_Status {
+    width: 100%;
+    margin-left: 5%;
+    margin-right: 5%;
+    background-color: #ddd;
+}
+
+#myprogressBar {
+    width: 0.01%;
+    height: 25px;
+    background-color: red;
+    text-align: center;
+    line-height: 32px;
+    color: black;
+    text-blink: true;
+    text-decoration: white;
+}
+
 
 
 

@@ -7,29 +7,23 @@ package zw.org.zvandiri.batch.writers;
  */
 
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.AfterStep;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import zw.org.zvandiri.Constants;
 import zw.org.zvandiri.DatabaseHeader;
-import zw.org.zvandiri.business.domain.Contact;
 import zw.org.zvandiri.business.domain.Patient;
 import zw.org.zvandiri.business.service.PatientService;
+import zw.org.zvandiri.controller.progress.variables.ExportCaseloadVariables;
+import zw.org.zvandiri.controller.progress.variables.ExportDatabaseVariables;
 
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Component("uncontactExcelWriter")
-public class UncontactedExcelWriter implements ItemWriter<Patient> {
+public class CaseloadManagementExcelWriter implements ItemWriter<Patient> {
 
    @Autowired
     PatientService patientService;
@@ -40,8 +34,11 @@ public class UncontactedExcelWriter implements ItemWriter<Patient> {
     private int currRow = 0;
     Sheet sheet;
 
+    @Autowired
+    ExportCaseloadVariables exportCaseloadVariables;
 
-    public UncontactedExcelWriter(HttpServletResponse response ) {
+
+    public CaseloadManagementExcelWriter(HttpServletResponse response ) {
         this.response = response;
     }
 
@@ -71,55 +68,50 @@ public class UncontactedExcelWriter implements ItemWriter<Patient> {
             cell.setCellStyle(style);
             col++;
         }
-        //currRow++;
     }
-
-
-   /* @AfterStep
-    public void afterStep(StepExecution stepExecution) {
-        String suffix= LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss"));
-        try(ServletOutputStream myOut = response.getOutputStream()) {
-            response.setContentType("application/vnd.ms-excel");
-            response.setHeader("Content-Disposition", "filename=Contact_Detailed_Report_"+suffix+".xlsx");
-            workbook.write(myOut);
-            myOut.flush();
-        } catch (IOException e) {
-            System.err.println("ForceDOWNLOAD Method: ");
-            e.printStackTrace();
-        }
-
-    }*/
 
     @BeforeStep
     public void beforeStep(StepExecution stepExecution) {
-        System.out.println("Calling beforeStep");
-//        sheet.createFreezePane(0, 3, 0, 3);
         sheet.setDefaultColumnWidth(20);
-
-        //currRow++;
         addHeaders(sheet);
         initDataStyle();
+    }
 
+    @AfterStep
+    public void afterStep(StepExecution stepExecution){
+        switch(stepExecution.getStepName().toUpperCase())
+        {
+            case "**EXPORT_UNCONTACTED_STEP**":
+                exportCaseloadVariables.setProgress(1);
+                break;
+            case "**EXPORT_INVALID_VL_STEP**":
+                exportCaseloadVariables.setProgress(2);
+                break;
+            case "**EXPORT_ENHANCED_STEP**":
+                exportCaseloadVariables.setProgress(3);
+                break;
+            case "**EXPORT_TB_CANDIDATES_STEP**":
+                exportCaseloadVariables.setProgress(4);
+                break;
+            case "**EXPORT_MH_CANDIDATES_STEP**":
+                exportCaseloadVariables.setProgress(5);
+                break;
+        }
     }
 
     private void initDataStyle() {
         dataCellStyle = sheet.getWorkbook().createCellStyle();
         Font font = sheet.getWorkbook().createFont();
-
-//        font.setFontHeightInPoints((short) 10);
         font.setFontName("Arial");
         dataCellStyle.setAlignment(HorizontalAlignment.LEFT);
         dataCellStyle.setFont(font);
     }
 
 
-
     @Override
     public void write(List<? extends Patient> items) throws Exception {
-
         for (Patient data : items) {
-                currRow++;
-                Row row = sheet.createRow(currRow);
+                Row row = sheet.createRow(++currRow);
                 createStringCell(row, data.getPatientNumber(), 0);
                 createStringCell(row, data.getName(), 1);
                 createStringCell(row, data.getClientType()!=null?data.getClientType().getName():"", 2);
@@ -183,7 +175,11 @@ public class UncontactedExcelWriter implements ItemWriter<Patient> {
         cell.setCellType(CellType.BLANK);
     }
 
+    public ExportCaseloadVariables getExportCaseloadVariables() {
+        return exportCaseloadVariables;
+    }
 
-
-
+    public void setExportCaseloadVariables(ExportCaseloadVariables exportCaseloadVariables) {
+        this.exportCaseloadVariables = exportCaseloadVariables;
+    }
 }

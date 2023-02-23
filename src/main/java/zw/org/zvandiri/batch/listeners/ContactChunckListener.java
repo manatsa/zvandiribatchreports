@@ -9,8 +9,11 @@ package zw.org.zvandiri.batch.listeners;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ChunkListener;
 import org.springframework.batch.core.scope.context.ChunkContext;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import zw.org.zvandiri.business.domain.User;
+import zw.org.zvandiri.controller.progress.variables.ExportContactsVariables;
+import zw.org.zvandiri.controller.progress.variables.ExportDatabaseVariables;
 
 /**
  * Log the count of items processed at a specified interval.
@@ -25,6 +28,8 @@ public class ContactChunckListener implements ChunkListener{
     //private static final Logger log = LogManager.getLogger(ExportDatabaseChunckListener.class);
 
     private int loggingInterval = 3000;
+    @Autowired
+    ExportContactsVariables exportContactsVariables;
 
     User user;
 
@@ -38,6 +43,7 @@ public class ContactChunckListener implements ChunkListener{
     public void afterChunk(ChunkContext context) {
 
         int count = context.getStepContext().getStepExecution().getReadCount();
+        exportContactsVariables.setProgress(count);
 
         // If the number of records processed so far is a multiple of the logging interval then output a log message.
         if (count > 0 && count % loggingInterval == 0) {
@@ -68,5 +74,13 @@ public class ContactChunckListener implements ChunkListener{
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public ExportContactsVariables getExportContactsVariables() {
+        return exportContactsVariables;
+    }
+
+    public void setExportContactsVariables(ExportContactsVariables exportContactsVariables) {
+        this.exportContactsVariables = exportContactsVariables;
     }
 }

@@ -19,6 +19,8 @@ import zw.org.zvandiri.DatabaseHeader;
 import zw.org.zvandiri.business.domain.Contact;
 import zw.org.zvandiri.business.domain.Patient;
 import zw.org.zvandiri.business.service.PatientService;
+import zw.org.zvandiri.controller.progress.variables.ExportContactsVariables;
+import zw.org.zvandiri.controller.progress.variables.ExportDatabaseVariables;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
@@ -32,11 +34,14 @@ public class ContactExcelWriter implements ItemWriter<Contact> {
 
     @Autowired
     PatientService patientService;
+    @Autowired
+    ExportContactsVariables exportContactsVariables;
 
     private HttpServletResponse response;
     private Workbook workbook;
     private CellStyle dataCellStyle;
     private int currRow = 0;
+    private int contactPage=0;
 
     public ContactExcelWriter(HttpServletResponse response) {
         this.response = response;
@@ -97,9 +102,24 @@ public class ContactExcelWriter implements ItemWriter<Contact> {
 
     @Override
     public void write(List<? extends Contact> items) throws Exception {
+
         Sheet sheet = workbook.getSheetAt(0);
+        Sheet contactSheet1=null;
+        Sheet contactSheet2=null;
         for (Contact data : items) {
-            Row row = sheet.createRow(++currRow);
+
+            if(contactPage==0 && currRow>1000000 && currRow<2000000){
+                System.err.println("^^^^^^^^^^^^^^^^^^ Now creating another sheet for contacts ^^^^^^^^^^^^^^^^^^");
+                contactSheet1=workbook.createSheet("contacts-2");
+                addHeaders(contactSheet1);
+                contactSheet1.setDefaultColumnWidth(20);
+                contactPage++;
+            } else if(contactPage==1 && currRow>2000000){
+                System.err.println("_______________+++++++++++++++++++ Contacts now more than 2million ++++++++++++++++++++________________");
+            }
+            ++currRow;
+            Row row = (contactPage==0)?sheet.createRow(currRow):contactSheet1.createRow((currRow-1000000)+1);
+//            Row row = sheet.createRow(++currRow);
             createStringCell(row, data.getPatient().getPatientNumber(), 0);
             createStringCell(row, data.getPatient().getName(), 1);
             createStringCell(row, data.getPatient().getDateOfBirth() != null ? data.getPatient().getDateOfBirth().toString() : "", 2);

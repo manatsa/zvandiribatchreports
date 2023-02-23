@@ -6,18 +6,14 @@
 package zw.org.zvandiri.business.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.ToString;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import zw.org.zvandiri.business.domain.dto.MentalHealthScreeningDTO;
-import zw.org.zvandiri.business.domain.util.*;
 import zw.org.zvandiri.business.domain.util.Referral;
-import zw.org.zvandiri.business.service.PatientService;
+import zw.org.zvandiri.business.domain.util.*;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.Set;
 
@@ -35,7 +31,6 @@ public class MentalHealthScreening extends BaseEntity {
 
     @ManyToOne(optional = false)
     @JsonIgnore
-    @NotNull
     @Fetch(value= FetchMode.SELECT)
     @JoinColumn(name="patient")
     private Patient patient;

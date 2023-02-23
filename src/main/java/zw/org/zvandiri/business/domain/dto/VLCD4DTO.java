@@ -1,16 +1,15 @@
 package zw.org.zvandiri.business.domain.dto;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.format.annotation.DateTimeFormat;
 import zw.org.zvandiri.business.domain.InvestigationTest;
-import zw.org.zvandiri.business.domain.Patient;
 import zw.org.zvandiri.business.domain.util.Cd4CountResultSource;
 import zw.org.zvandiri.business.domain.util.TestType;
 import zw.org.zvandiri.business.domain.util.YesNo;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
+import javax.persistence.Enumerated;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -45,7 +44,7 @@ public class VLCD4DTO implements Serializable {
     public VLCD4DTO() {
     }
 
-    public VLCD4DTO(@NotNull String patient, Date dateTaken, Date nextTestDate, Integer result, String tnd, TestType testType, YesNo haveResult, Cd4CountResultSource source) {
+    public VLCD4DTO(String patient, Date dateTaken, Date nextTestDate, Integer result, String tnd, TestType testType, YesNo haveResult, Cd4CountResultSource source) {
         this.patient = patient;
         this.dateTaken = dateTaken;
         this.nextTestDate = nextTestDate;

@@ -111,7 +111,7 @@ public interface DatabaseHeader {
 
     public final String [] CD4_COUNT_HEADER =  {
             "UIC", "Client Name","Date of Birth", "Age", "Gender", "Region", "District","Primary Clinic","Date Of Entry", "Test Type", "Date Taken",
-            "Source", "Next Lab Due","VLSuppressionStatus","Result Taken","TND","Record Source", "IS CATS", "In YMM Programme", "In YMD Programme"
+             "Source","Next Lab Due","SuppressionStatus","Result","TND","IS CATS", "In YMM Programme", "In YMD Programme"
     };
 
     public final String [] ARV_HISTORY_HEADER = {

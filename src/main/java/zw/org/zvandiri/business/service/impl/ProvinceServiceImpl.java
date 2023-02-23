@@ -3,6 +3,9 @@ package zw.org.zvandiri.business.service.impl;
 import java.util.Date;
 import java.util.List;
 import javax.annotation.Resource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,18 +19,18 @@ import zw.org.zvandiri.business.util.UUIDGen;
  *
  * @author Judge Muzinda
  */
-@Repository("locService")
+@Component("locService")
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class ProvinceServiceImpl implements ProvinceService {
 
-    @Resource
+    @Autowired
     private ProvinceRepo provinceRepo;
-    @Resource
+    @Autowired
     private UserService userService;
 
     @Override
     public List<Province> getAll() {
-        return provinceRepo.getOptAll(Boolean.TRUE);
+        return provinceRepo.findAll();
     }
 
     @Override

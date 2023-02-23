@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import zw.org.zvandiri.business.domain.Contact;
 import zw.org.zvandiri.business.domain.Patient;
 import zw.org.zvandiri.business.domain.User;
+import zw.org.zvandiri.business.util.dto.SearchDTO;
 
 /**
  *
@@ -42,4 +43,6 @@ public interface ContactService extends GenericService<Contact> {
     public List<Contact> findByDistrictInGivenTime(Date start, Date end, String district);
 
     public List<Contact> findByFacilityInGivenTime(Date start, Date end, String facility);
+
+    public long getSelectedContacts(SearchDTO dto);
 }

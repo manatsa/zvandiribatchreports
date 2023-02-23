@@ -1,8 +1,10 @@
 package zw.org.zvandiri.controller.progress;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import zw.org.zvandiri.controller.progress.variables.ExportCaseloadVariables;
 import zw.org.zvandiri.controller.progress.variables.ExportDatabaseVariables;
 
 /**
@@ -12,12 +14,14 @@ import zw.org.zvandiri.controller.progress.variables.ExportDatabaseVariables;
  */
 
 @RestController
-@RequestMapping("/report/export-database/progress")
+@RequestMapping("/report/export-caseload/progress")
 public class ExportCaseloadProgressController {
 
+    @Autowired
+    ExportCaseloadVariables exportCaseloadVariables;
     @GetMapping("/index")
     public double getProgress(){
-        double progress=Math.round((ExportDatabaseVariables.progress>0 && ExportDatabaseVariables.count>0)?(double)((ExportDatabaseVariables.progress/ExportDatabaseVariables.count)*100):0);
+       double progress=Math.round((exportCaseloadVariables.getProgress()>0 && exportCaseloadVariables.getCount()>0)?(double)((exportCaseloadVariables.getProgress()/exportCaseloadVariables.getCount())*100):0);
         return progress;
     }
 }

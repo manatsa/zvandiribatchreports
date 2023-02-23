@@ -21,6 +21,7 @@ import zw.org.zvandiri.business.domain.util.PatientChangeEvent;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -31,7 +32,7 @@ public class StringToStatusArraysConverter implements Converter<String[], List<P
 
     @Override
     public List<PatientChangeEvent> convert(String[] s) {
-        return Arrays.stream(s).map(s1 -> PatientChangeEvent.get(Integer.valueOf(s1))).toList();
+        return Arrays.stream(s).map(s1 -> PatientChangeEvent.get(Integer.valueOf(s1))).collect(Collectors.toList());
     }
     
 }

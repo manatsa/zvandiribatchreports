@@ -2,11 +2,24 @@
 <div class="col-lg-12">
     <div class="panel panel-default">
         <div class="panel-heading">
-            ${pageTitle}
+                ${pageTitle}
         </div>
         <div class="panel-body">
-            <a href="${page}/report/index.htm">&DoubleLeftArrow; Back To Reports DashBoard Home</a><br/>
-            <form:form modelAttribute="item" role="form">
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    <a href="${page}/report/index.htm">&DoubleLeftArrow; Reports DashBoard</a><br/>
+                </div>
+                <%--                <div class="col-lg-1" />--%>
+                <div class="col-md-9">
+                    <div class="col-md-10">
+                        <div id="Progress_Status">
+                            <div id="myprogressBar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <form:form modelAttribute="item" role="form" onsubmit="runExportCaseloadProgress()">
                 <table class="table">
                     <tbody>
                         <tr>

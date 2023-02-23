@@ -45,6 +45,7 @@ public class ExportDatabaseExcelWriter implements ItemWriter<Patient> {
     private int mhCurrRow = 0;
 
     Sheet contactSheet1=null;
+    Sheet contactSheet2=null;
 
     public ExportDatabaseExcelWriter(HttpServletResponse response) {
         this.response = response;
@@ -71,7 +72,6 @@ public class ExportDatabaseExcelWriter implements ItemWriter<Patient> {
         }
         //currRow++;
     }
-
 
     @AfterStep
     public void afterStep(StepExecution stepExecution) {
@@ -155,47 +155,53 @@ public class ExportDatabaseExcelWriter implements ItemWriter<Patient> {
             createStringCell(row, data.getConsentToMHealth()!=null?data.getConsentToMHealth().getName():"", 11);
             createStringCell(row, data.getEducation()!=null?data.getEducation().getName():"", 12);
             createStringCell(row, data.getEducationLevel()!=null?data.getEducationLevel().getName():"", 13);
-            createStringCell(row, data.getClientType()!=null?data.getClientType().getName() : "", 14);
-            createStringCell(row, data.getArtRegimen(), 15);
-            createStringCell(row, data.getReferer()!=null?data.getReferer().getName():"", 16);
-            createStringCell(row, data.getPrimaryClinic().getDistrict().getProvince().getName(), 17);
-            createStringCell(row, data.getPrimaryClinic().getDistrict().getName(), 18);
-            createStringCell(row, data.getPrimaryClinic().getName(), 19);
-            createStringCell(row, data.getSupportGroup()!=null?data.getSupportGroup().getName():"", 20);
-            createStringCell(row, data.getDateTested()!=null?data.getDateTested().toString():"", 21);
-            createStringCell(row, data.gethIVDisclosureLocation()!=null?data.gethIVDisclosureLocation().getName():"", 22);
-            createStringCell(row, data.getDisclosureType()!=null?data.getDisclosureType().getName():"", 23);
-            createStringCell(row, data.getIsKeypopulation()!=null?data.getIsKeypopulation().getName():"", 24);
-            createStringCell(row, data.getKeyPopulation()!=null?data.getKeyPopulation().getName():"", 25);
-            createStringCell(row, data.getHaveBirthCertificate()!=null?data.getHaveBirthCertificate().getName():"", 26);
-            createStringCell(row, data.getDisability()!=null?data.getDisability().getName():"", 27);
-            createStringCell(row, data.getDisablityType(), 28);
-            createStringCell(row, data.getCat()!=null?data.getCat().getName():"", 29);
-            createStringCell(row, data.getYoungMumGroup()!=null?data.getYoungMumGroup().getName():"", 30);
-            createStringCell(row, data.getYoungDadGroup()!=null?data.getYoungDadGroup().getName() : "", 31);
-            createStringCell(row, data.getTransmissionMode()!=null?data.getTransmissionMode().getName():"", 32);
-            createStringCell(row, data.getArtRegimen(), 33);
-            createStringCell(row, data.getHivStatusKnown()!=null?data.getHivStatusKnown().getName():"", 34);
-            createStringCell(row, data.getStatus().getName(), 35);
+//            createStringCell(row, data.getClientType()!=null?data.getClientType().getName() : "", 14);
+            createStringCell(row, data.getArtRegimen(), 14);
+            createStringCell(row, data.getReferer()!=null?data.getReferer().getName():"", 15);
+            createStringCell(row, data.getPrimaryClinic().getDistrict().getProvince().getName(), 16);
+            createStringCell(row, data.getPrimaryClinic().getDistrict().getName(), 17);
+            createStringCell(row, data.getPrimaryClinic().getName(), 18);
+            createStringCell(row, data.getSupportGroup()!=null?data.getSupportGroup().getName():"", 19);
+            createStringCell(row, data.getDateTested()!=null?data.getDateTested().toString():"", 20);
+            createStringCell(row, data.gethIVDisclosureLocation()!=null?data.gethIVDisclosureLocation().getName():"", 21);
+            createStringCell(row, data.getDisclosureType()!=null?data.getDisclosureType().getName():"", 22);
+            createStringCell(row, data.getIsKeypopulation()!=null?data.getIsKeypopulation().getName():"", 23);
+            createStringCell(row, data.getKeyPopulation()!=null?data.getKeyPopulation().getName():"", 24);
+            createStringCell(row, data.getHaveBirthCertificate()!=null?data.getHaveBirthCertificate().getName():"", 25);
+            createStringCell(row, data.getDisability()!=null?data.getDisability().getName():"", 26);
+            createStringCell(row, data.getDisablityType(), 27);
+            createStringCell(row, data.getCat()!=null?data.getCat().getName():"", 28);
+            createStringCell(row, data.getYoungMumGroup()!=null?data.getYoungMumGroup().getName():"", 29);
+            createStringCell(row, data.getYoungDadGroup()!=null?data.getYoungDadGroup().getName() : "", 30);
+            createStringCell(row, data.getTransmissionMode()!=null?data.getTransmissionMode().getName():"", 31);
+//            createStringCell(row, data.getArtRegimen(), 33);
+            createStringCell(row, data.getHivStatusKnown()!=null?data.getHivStatusKnown().getName():"", 32);
+            createStringCell(row, data.getStatus().getName(), 33);
             if(data.getLastVl()!=null && data.getLastVl().getResult()!=null){
-                createNumericCell(row, data.getLastVl().getResult().doubleValue(), 36);
+                createNumericCell(row, data.getLastVl().getResult().doubleValue(), 34);
             }else{
-                createBlankCell(row,36);
+                createBlankCell(row,34);
             }
-            createStringCell(row, data.getLastVl()!=null?data.getLastVl().getTnd():"", 37);
-            createStringCell(row, data.getLastVl()!=null && data.getLastVl().getDateTaken()!=null?data.getLastVl().getDateTaken().toString():"", 38);
+            createStringCell(row, data.getLastVl()!=null?data.getLastVl().getTnd():"", 35);
+            createStringCell(row, data.getLastVl()!=null && data.getLastVl().getDateTaken()!=null?data.getLastVl().getDateTaken().toString():"", 36);
 
             //writing contacts for the client
             data.getContacts().stream().forEach(contact -> {
-                if(contactPage==0 && contactCurrRow>1400000){
+                if(contactPage==0 && contactCurrRow>1000000 && contactCurrRow<2000000){
                     System.err.println("^^^^^^^^^^^^^^^^^^ Now creating another sheet for contacts ^^^^^^^^^^^^^^^^^^");
                     contactSheet1=workbook.createSheet("contacts-2");
                     addHeaders(contactSheet1, DatabaseHeader.CONTACT_HEADER, 0);
                     contactSheet1.setDefaultColumnWidth(20);
                     contactPage++;
+                } else if (contactPage==1 && contactCurrRow>1000000 && contactCurrRow<2000000) {
+                    System.err.println("^^^^^^^^^^^^^^^^^^ Now creating another sheet for contacts ^^^^^^^^^^^^^^^^^^");
+                    contactSheet2=workbook.createSheet("contacts-3");
+                    addHeaders(contactSheet2, DatabaseHeader.CONTACT_HEADER, 0);
+                    contactSheet1.setDefaultColumnWidth(20);
+                    contactPage++;
                 }
-                contactCurrRow++;
-                Row contactRow = (contactCurrRow<=1400000)?contactSheet.createRow(contactCurrRow):contactSheet1.createRow((++contactCurrRow-1400000)+1);
+                ++contactCurrRow;
+                Row contactRow = (contactPage==0)?contactSheet.createRow(contactCurrRow):(contactPage==1)?contactSheet1.createRow((contactCurrRow-1000000)+1):contactSheet1.createRow((contactCurrRow-2000000)+1);
                 createStringCell(contactRow, contact.getPatient().getPatientNumber(), 0);
                 createStringCell(contactRow, contact.getPatient().getName(), 1);
                 createStringCell(contactRow, contact.getPatient().getDateOfBirth() != null ? contact.getPatient().getDateOfBirth().toString() : "", 2);
@@ -277,15 +283,16 @@ public class ExportDatabaseExcelWriter implements ItemWriter<Patient> {
                 createStringCell(vlRow, vl.getPatient().getPrimaryClinic().getDistrict().getName(), 6);
                 createStringCell(vlRow, vl.getPatient().getPrimaryClinic().getName(), 7);
                 createStringCell(vlRow, vl.getDateCreated()!=null?vl.getDateCreated().toString():"", 8);
+
                 createStringCell(vlRow, vl.getTestType()!=null?vl.getTestType().getName():"", 9);
                 createStringCell(vlRow, vl.getDateTaken()!=null?vl.getDateTaken().toString():"", 10);
-                createStringCell(vlRow, vl.getSource()!=null?vl.getSource().getName():"", 12);
-                createStringCell(vlRow, vl.getNextTestDate()!=null?vl.getNextTestDate().toString():"", 13);
-                createStringCell(vlRow, (vl.getResult()!=null&& vl.getResult()<1000) || (vl.getTnd()!=null)?"Suppressed":"Unsupressed", 14);
+                createStringCell(vlRow, vl.getSource()!=null?vl.getSource().getName():"", 11);
+                createStringCell(vlRow, vl.getNextTestDate()!=null?vl.getNextTestDate().toString():"", 12);
+                createStringCell(vlRow, (vl.getResult()!=null&& vl.getResult()<1000 ) || (vl.getTnd()!=null)?"Suppressed":"Unsupressed", 13);
                 if(vl.getResult()!=null){
-                    createNumericCell(vlRow, vl.getResult().doubleValue(), 11);
+                    createNumericCell(vlRow, vl.getResult().doubleValue(), 14);
                 }else{
-                    createBlankCell(vlRow, 11);
+                    createBlankCell(vlRow, 14);
                 }
                 createStringCell(vlRow, vl.getTnd()!=null?vl.getTnd():"", 15);
                 createStringCell(vlRow, vl.getPatient().getCat()!=null?vl.getPatient().getCat().getName():"", 16);

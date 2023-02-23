@@ -15,14 +15,11 @@
  */
 package zw.org.zvandiri.business.domain;
 
-import javax.persistence.*;
-
-import lombok.ToString;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import zw.org.zvandiri.business.domain.dto.VLCD4DTO;
 import zw.org.zvandiri.business.domain.util.TestType;
 import zw.org.zvandiri.business.domain.util.YesNo;
+
+import javax.persistence.*;
 
 /**
  *

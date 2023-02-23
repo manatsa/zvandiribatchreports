@@ -24,6 +24,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.RequestParam;
 import zw.org.zvandiri.business.domain.*;
+import zw.org.zvandiri.business.domain.util.PatientChangeEvent;
 
 /**
  *
@@ -80,5 +81,28 @@ public interface ContactRepo extends JpaRepository<Contact, String> {
     @Query("select distinct  c from Contact c left join fetch c.patient left  join  c.position left join fetch c.location where c.patient.id=:patient and c.contactDate=:contactDate and c.contactMadeBy=:contactMadeBy and c.location.id=:location")
     List<Contact> getDuplicateContacts(@Param("patient") String patient, @Param("contactDate") String contactDate, @Param("contactMadeBy") String contactMadeBy, @Param("location") String location);
 
+    @Query("select count(c) from Contact c join  c.patient p where p.primaryClinic.district.province in :provinces and p.status in :statuses")
+    long countContactsByProvinces(@Param("provinces") List<Province> provinces, @Param("statuses")List<PatientChangeEvent> statuses);
+
+    @Query("select count(c) from Contact c join  c.patient p where p.primaryClinic.district.province in :provinces and p.status in :statuses and c.contactDate between :startDate and :endDate")
+    long countContactsByProvincesDates(@Param("provinces") List<Province> provinces, @Param("statuses")List<PatientChangeEvent> statuses, @Param("startDate") Date startDate, @Param("endDate") Date endDate);
+
+    @Query("select count(c) from Contact c join  c.patient p where p.primaryClinic.district in :districts and p.status in :statuses")
+    long countContactsByDistricts(@Param("districts") List<District> districts, @Param("statuses")List<PatientChangeEvent> statuses);
+
+    @Query("select count(c) from Contact c join  c.patient p where p.primaryClinic.district in :districts and p.status in :statuses and c.contactDate between  :startDate and :endDate")
+    long countContactsByDistrictsDates(@Param("districts") List<District> districts, @Param("statuses")List<PatientChangeEvent> statuses, @Param("startDate") Date startDate, @Param("endDate") Date endDate);
+
+    @Query("select count(c) from Contact c join  c.patient p where p.primaryClinic in :facilities and p.status in :statuses")
+    long countContactsByFacilities(@Param("facilities") List<Facility> facilities, @Param("statuses")List<PatientChangeEvent> statuses);
+
+    @Query("select count(c) from Contact c join  c.patient p where p.primaryClinic in :facilities and p.status in :statuses and c.contactDate between :startDate and :endDate")
+    long countContactsByFacilitiesDates(@Param("facilities") List<Facility> facilities, @Param("statuses")List<PatientChangeEvent> statuses, @Param("startDate") Date startDate, @Param("endDate") Date endDate);
+
+    @Query("select count(c) from Contact c join c.patient p where p.status in :statuses ")
+    long countContacts(@Param("statuses")List<PatientChangeEvent> statuses);
+
+    @Query("select count(c) from Contact c join c.patient p where p.status in :statuses and c.contactDate between :startDate and :endDate")
+    long countContactsDates(@Param("statuses")List<PatientChangeEvent> statuses, @Param("startDate") Date startDate, @Param("endDate") Date endDate);
 
 }

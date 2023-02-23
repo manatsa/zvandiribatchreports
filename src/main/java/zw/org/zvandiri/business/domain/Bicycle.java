@@ -1,14 +1,11 @@
 package zw.org.zvandiri.business.domain;
 
 import lombok.ToString;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.format.annotation.DateTimeFormat;
 import zw.org.zvandiri.business.domain.util.Condition;
 import zw.org.zvandiri.business.domain.util.PhoneStatus;
-import zw.org.zvandiri.business.domain.util.RecordSource;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.util.Date;
 
 @ToString
@@ -18,7 +15,6 @@ import java.util.Date;
         @Index(name = "cadre_bike_type", columnList = "bikeType")
 })*/
 public class Bicycle extends BaseEntity{
-    @NotNull(message = "Bicycle type cannot be empty.")
     private String bikeType;
     private String bikeIssues;
     @Enumerated

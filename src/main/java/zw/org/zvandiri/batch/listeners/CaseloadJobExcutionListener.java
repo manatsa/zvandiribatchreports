@@ -3,6 +3,8 @@ package zw.org.zvandiri.batch.listeners;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
+import org.springframework.batch.core.annotation.AfterStep;
+import zw.org.zvandiri.controller.progress.variables.ExportDatabaseVariables;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
@@ -19,6 +21,7 @@ import java.time.format.DateTimeFormatter;
 public class CaseloadJobExcutionListener implements JobExecutionListener {
     HttpServletResponse response;
     Workbook workbook;
+    private int progress=0;
 
     public CaseloadJobExcutionListener(HttpServletResponse response) {
         this.response = response;
@@ -32,6 +35,7 @@ public class CaseloadJobExcutionListener implements JobExecutionListener {
     public void beforeJob(JobExecution jobExecution) {
         System.err.println("--------------- starting caseload management plan export ---------------");
     }
+
 
     @Override
     public void afterJob(JobExecution jobExecution) {

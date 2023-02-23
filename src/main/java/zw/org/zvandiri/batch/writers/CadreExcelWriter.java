@@ -6,31 +6,22 @@ package zw.org.zvandiri.batch.writers;
  * Package Name :: zw.org.zvandiri.batchboot.batch
  */
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Calendar;
-import java.util.List;
-
-import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.AfterStep;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Component;
 import zw.org.zvandiri.Constants;
 import zw.org.zvandiri.business.domain.Cadre;
-import zw.org.zvandiri.business.domain.Patient;
 import zw.org.zvandiri.business.service.PatientService;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
 
 @Component("cadreExcelWriter")
 //@Scope("step")

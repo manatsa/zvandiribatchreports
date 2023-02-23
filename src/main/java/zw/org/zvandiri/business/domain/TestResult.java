@@ -16,13 +16,11 @@
 package zw.org.zvandiri.business.domain;
 
 import lombok.ToString;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.format.annotation.DateTimeFormat;
 import zw.org.zvandiri.business.domain.util.Cd4CountResultSource;
 import zw.org.zvandiri.business.domain.util.YesNo;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.util.Date;
 
 /**
@@ -34,7 +32,6 @@ import java.util.Date;
 public class TestResult extends BaseEntity {
     
     @ManyToOne
-    @NotNull
     //@JsonIgnore
     @JoinColumn(name="patient")
     private Patient patient;

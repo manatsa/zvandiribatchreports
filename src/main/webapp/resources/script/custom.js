@@ -37,7 +37,6 @@ $("#province").change(function () {
 
 $("#provinces").change(function () {
     $this = $(this);
-    console.log($this.val())
 
     if ($this.val() === "") {
         $("#districts").find('option').remove().end().append('<option value="">--Select Item--</option>').val('');
@@ -129,26 +128,6 @@ $(".otherdate").datepicker({
     dateFormat: "dd/mm/yy"
 });
 
-/*$(document).ready(function() {
-    $('#provinces').select2({
-        placeholder: '-- Select Item--',
-        theme: 'classic',
-        closeOnSelect: false,
-        allowClear: true
-    });
-    $('#districts').select2({
-        placeholder: '-- Select Item--',
-        theme: 'classic',
-        closeOnSelect: false,
-        allowClear: true
-    });
-    $('#facilities').select2({
-        placeholder: '-- Select Item--',
-        theme: 'classic',
-        closeOnSelect: false,
-        allowClear: true
-    });
-});*/
 
 
 function processDropDown(items) {
@@ -228,3 +207,156 @@ function normalizeArgs(data){
 
 
 
+var exportDBUrl = '/zvandirireports/report/export-database/progress/index';
+var exportContactsUrl = '/zvandirireports/report/export-contacts/progress/index';
+var exportPatientsUrl = '/zvandirireports/report/export-patients/progress/index';
+var exportCaseloadUrl = '/zvandirireports/report/export-caseload/progress/index';
+
+function  runExportDatabaseProgress() {
+        let progress=0;
+
+        var prog = setInterval(() => {
+
+            document.getElementById("myprogressBar").style.width = progress+"%";
+            document.getElementById("myprogressBar").style.color="white";
+            document.getElementById("myprogressBar").style.fontWeight="bold";
+            document.getElementById("myprogressBar").style.background=
+                (progress<=10)?"linear-gradient(to right, red, orange)":
+                    (progress<=25)?"linear-gradient(to right, orange, gold)":
+                        (progress<50)?"linear-gradient(to right, orange, gold,yellow)":
+                            (progress<=70)?"linear-gradient(to right, gold, yellow, greenyellow, limegreen )":
+                                (progress<85)?"linear-gradient(to right, greenyellow, limegreen)":
+                                    (progress<90)?"linear-gradient(to right, limegreen,green)":
+                                        "linear-gradient(to right, green, limegreen, #228B22)";
+            document.getElementById("myprogressBar").innerText = (progress<=20)?progress+"%": (progress>20)?"Task is "+progress+"% complete":"";
+
+            if(progress==100 ||progress==100.0){
+                console.log('clearing interval')
+                clearInterval(prog)
+            }
+            $.ajax({
+                type: "GET",
+                url: exportDBUrl,
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: data=>{
+                    progress=data;
+                },
+                error: error=>{
+                    console.log(error)
+                }
+            });
+        }, 1000)
+    }
+
+
+
+function runExportContactsProgress(){
+    let progress=0;
+
+    var contactsTask = setInterval(() => {
+
+        document.getElementById("myprogressBar").style.width = progress+"%";
+        document.getElementById("myprogressBar").style.color="white";
+        document.getElementById("myprogressBar").style.fontWeight="bold";
+        document.getElementById("myprogressBar").style.background=
+            (progress<=10)?"linear-gradient(to right, red, orange)":
+                (progress<=25)?"linear-gradient(to right, orange, gold)":
+                    (progress<50)?"linear-gradient(to right, orange, gold,yellow)":
+                        (progress<=70)?"linear-gradient(to right, gold, yellow, greenyellow, limegreen )":
+                            (progress<85)?"linear-gradient(to right, greenyellow, limegreen)":
+                                (progress<90)?"linear-gradient(to right, limegreen,green)":
+                                    "linear-gradient(to right, green, limegreen, #228B22)";
+        document.getElementById("myprogressBar").innerText = (progress<=20)?progress+"%": (progress>20)?"Task is "+progress+"% complete":"";
+
+        if(progress==100 ||progress==100.0){
+            clearInterval(contactsTask)
+        }
+        $.ajax({
+            type: "GET",
+            url: exportContactsUrl,
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: data=>{
+                progress=data;
+            },
+            error: error=>{
+                console.log(error)
+            }
+        });
+    }, 1000)
+}
+
+
+function runExportPatientsProgress(){
+    let progress=0;
+
+    var contactsTask = setInterval(() => {
+
+        document.getElementById("myprogressBar").style.width = progress+"%";
+        document.getElementById("myprogressBar").style.color="white";
+        document.getElementById("myprogressBar").style.fontWeight="bold";
+        document.getElementById("myprogressBar").style.background=
+            (progress<=10)?"linear-gradient(to right, red, orange)":
+            (progress<=25)?"linear-gradient(to right, orange, gold)":
+                (progress<50)?"linear-gradient(to right, orange, gold,yellow)":
+                    (progress<=70)?"linear-gradient(to right, gold, yellow, greenyellow, limegreen )":
+                        (progress<85)?"linear-gradient(to right, greenyellow, limegreen)":
+                            (progress<90)?"linear-gradient(to right, limegreen,green)":
+                                "linear-gradient(to right, green, limegreen, #228B22)";
+        document.getElementById("myprogressBar").innerText = (progress<=20)?progress+"%": (progress>20)?"Task is "+progress+"% complete":"";
+
+        if(progress==100 ||progress==100.0){
+            clearInterval(contactsTask)
+        }
+        $.ajax({
+            type: "GET",
+            url: exportPatientsUrl,
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: data=>{
+                progress=data;
+            },
+            error: error=>{
+                console.log(error)
+            }
+        });
+    }, 1000)
+}
+
+
+function runExportCaseloadProgress(){
+    let progress=0;
+
+    var contactsTask = setInterval(() => {
+
+        document.getElementById("myprogressBar").style.width = progress+"%";
+        document.getElementById("myprogressBar").style.color="white";
+        document.getElementById("myprogressBar").style.fontWeight="bold";
+        document.getElementById("myprogressBar").style.background=
+            (progress<=10)?"linear-gradient(to right, red, orange)":
+                (progress<=25)?"linear-gradient(to right, orange, gold)":
+                    (progress<50)?"linear-gradient(to right, orange, gold,yellow)":
+                        (progress<=70)?"linear-gradient(to right, gold, yellow, greenyellow, limegreen )":
+                            (progress<85)?"linear-gradient(to right, greenyellow, limegreen)":
+                                (progress<90)?"linear-gradient(to right, limegreen,green)":
+                                    "linear-gradient(to right, green, limegreen, #228B22)";
+        document.getElementById("myprogressBar").innerText = (progress<=20)?progress+"%": (progress>20)?"Task is "+progress+"% complete":"";
+
+        if(progress==100 ||progress==100.0){
+            clearInterval(contactsTask)
+        }
+        $.ajax({
+            type: "GET",
+            url: exportCaseloadUrl,
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: data=>{
+                progress=data;
+            },
+            error: error=>{
+                console.log(error)
+            }
+        });
+    }, 1000)
+}
